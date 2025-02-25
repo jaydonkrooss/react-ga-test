@@ -1,25 +1,40 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
 
-function App() {
+import { Route, Routes } from 'react-router-dom';
+
+import { useGoogleAnalytics, useUmConsent, InitializeConsentManagerParams } from '@tl-its-umich-edu/react-ga-onetrust-consent'; 
+import Homepage from './Homepage';
+import Page2 from './Page2';
+
+
+function App(): JSX.Element {
+/*
+  let window = global as any; // this is a hack to get around the fact that the window object is not defined in node
+  require('react-dom');
+  window.React2 = require('react');
+  console.log(window.React1 === window.React2);
+*/
+  
+  const { gaInitialized, gaHandlers } = useGoogleAnalytics({
+    googleAnalyticsId: '', // your Google Analytics ID
+    debug: false,
+  });
+
+  const { umConsentInitialize, umConsentInitialized } = useUmConsent();    
+  if (!umConsentInitialized && gaInitialized && gaHandlers.onConsentApprove && gaHandlers.onConsentReject) {
+      const consentParams: InitializeConsentManagerParams = {
+          developmentMode: false,
+          alwaysShow: true,
+          onConsentApprove: gaHandlers.onConsentApprove,
+          onConsentReject: gaHandlers.onConsentReject,
+      }
+      umConsentInitialize(consentParams);
+  }
+      
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={<Homepage />} />
+      <Route path="/page2" element={<Page2 />} />
+    </Routes>
   );
 }
 
